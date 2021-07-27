@@ -6,6 +6,24 @@ from scipy.ndimage.filters import gaussian_filter1d
 from path import Path
 
 
+def GenerateColorFromString(string):
+    r = 0
+    g = 0
+    b = 0
+
+    for character in string:
+        characterValue = ord(character)
+        r += characterValue
+        g += characterValue * 9
+        b += characterValue * 853
+
+    r = float(r % 255) / 255.0
+    g = float(g % 255) / 255.0
+    b = float(b % 255) / 255.0
+
+    return (r, g, b, 1.0)
+
+
 def PlotBenchmarkResult(results):
     plt.xlabel('Number of Elements')
     plt.ylabel('Seconds')
@@ -14,8 +32,7 @@ def PlotBenchmarkResult(results):
 
     maxX = 0
     maxY = 0
-    for result in results:
-        csvFile = result[0]
+    for csvFile in results:
         try:
             reader = csv.reader(open(csvFile, "r"))
             x_axis = []
@@ -25,9 +42,8 @@ def PlotBenchmarkResult(results):
                 thisY = float(row[1])
                 x_axis.append(thisX)
                 y_axis.append(thisY)
-            #ysmoothed = gaussian_filter1d(y_axis, sigma=1)
-            plt.plot(x_axis, y_axis, label=os.path.splitext(
-                csvFile)[0], color=result[1])
+            ysmoothed = gaussian_filter1d(y_axis, sigma=2)
+            plt.plot(x_axis, ysmoothed, label=os.path.splitext(csvFile)[0]) #, color=GenerateColorFromString(csvFile))
             maxX = max(maxX, max(x_axis))
             maxY = max(maxY, 50)
         except IOError as e:
@@ -38,8 +54,12 @@ def PlotBenchmarkResult(results):
     plt.legend()
     plt.show()
 
+def GetListOfCSVFiles(path):
+        return sorted([path + "\\" + f for f in os.listdir(path) if f.endswith(".csv")])
 
-results = [["PIRSort.csv", 'b'], ["RadixSort.csv", 'g'], ["SelectionSort.csv", 'r'], ["BubbleSort.csv", 'c'], [
-    "InsertionSort.csv", 'indigo'], ["MergeSort.csv", 'm'], ["QuickSort.csv", 'y'], ["IntroSort.csv", 'k'], ["ParallelQuicksort.csv", 'saddlebrown']]
+files = GetListOfCSVFiles(os.getcwd())
+PlotBenchmarkResult(files)
+
+#results = [["PIRSort.csv", 'b'], ["RadixSort.csv", 'g'], ["SelectionSort.csv", 'r'], ["BubbleSort.csv", 'c'], ["InsertionSort.csv", 'indigo'], ["MergeSort.csv", 'm'], ["QuickSort.csv", 'y'], ["IntroSort.csv", 'k'], ["ParallelQuicksort.csv", 'saddlebrown']]
 #results = [["PIRSort.csv", 'b'], ["QuickSort.csv", 'y'], ["IntroSort.csv", 'k'], ["RadixSort.csv", 'g'],  ["ParallelQuicksort.csv", 'w']]
-PlotBenchmarkResult(results)
+#PlotBenchmarkResult(results)
