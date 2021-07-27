@@ -10,7 +10,7 @@ namespace PIRS
 	class ByteAdapter
 	{
 	public:
-		inline static bool Evaluate(int8_t& value, size_t step)
+		inline static bool Evaluate(const int8_t& value, const size_t& step)
 		{
 			if (step == 0)
 			{
@@ -22,10 +22,11 @@ namespace PIRS
 			}
 		};
 	};
+
 	class UByteAdapter
 	{
 	public:
-		inline static bool Evaluate(uint8_t& value, size_t step)
+		inline static bool Evaluate(const uint8_t& value, const size_t& step)
 		{
 			return (value & (1 << (7 - step))) == 0;
 		};
@@ -34,7 +35,7 @@ namespace PIRS
 	class IntAdapter
 	{
 	public:
-		inline static bool Evaluate(int& value, size_t step)
+		inline static bool Evaluate(const int& value, const size_t& step)
 		{
 			if (step == 0)
 			{
@@ -50,7 +51,7 @@ namespace PIRS
 	class UIntAdapter
 	{
 	public:
-		inline static bool Evaluate(unsigned int& value, size_t step)
+		inline static bool Evaluate(const unsigned int& value, const size_t& step)
 		{
 			return (value & (1 << (31 - step))) == 0;
 		};
@@ -66,17 +67,21 @@ namespace PIRS
 		{
 			size_t i = 0;
 			size_t noTrueUntil = 0;
+			ToSortType tmp;
+			size_t jStart;
+			bool swapped;
+			size_t j;
 			while (i < elementCount)
 			{
 				if (!Adapter::Evaluate(data[i], step))
 				{
-					bool swapped = false;
-					size_t jStart = noTrueUntil < (i + 1) ? (i + 1) : noTrueUntil;
-					for (size_t j = jStart; j < elementCount; ++j)
+					swapped = false;
+					jStart = noTrueUntil < (i + 1) ? (i + 1) : noTrueUntil;
+					for (j = jStart; j < elementCount; ++j)
 					{
 						if (Adapter::Evaluate(data[j], step))
 						{
-							ToSortType tmp = data[i];
+							tmp = data[i];
 							data[i] = data[j];
 							data[j] = tmp;
 							swapped = true;
