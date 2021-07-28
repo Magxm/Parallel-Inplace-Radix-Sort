@@ -16,7 +16,7 @@
 
 typedef uint8_t SortType;
 
-PIRS::PIRSorter<SortType, PIRS::ByteAdapter, 8, (size_t)1 << (size_t)63> PIRSorter;
+PIRS::PIRSorter<SortType, PIRS::ByteAdapter, 8> PIRSorter;
 void PIRSSort(SortType* data, size_t dataSize)
 {
 	PIRSorter.Sort(data, dataSize);
@@ -329,17 +329,16 @@ bool Benchmark(const BenchmarkEntry* benckmarkEntry)
 
 	if (lastPIRSTime <= secondsThreshhold)
 	{
-		lastPIRSTime = BenchmarkAlgorithm(PIRSSort, L"Inplace Radix Sort", benckmarkEntry);
+		lastPIRSTime = BenchmarkAlgorithm(PIRSSort, L"Parallel Inplace Radix Sort", benckmarkEntry);
 		sortingAlgoLeft = true;
 	}
 
-	/*
 	if (lastQSMTTime <= secondsThreshhold)
 	{
 		lastQSMTTime = BenchmarkAlgorithm(QuicksortMT, L"ParallelQuicksort", benckmarkEntry);
 		sortingAlgoLeft = true;
 	}
-	*/
+
 	/*
 	if (lastSelectionTime <= secondsThreshhold)
 	{
@@ -358,7 +357,6 @@ bool Benchmark(const BenchmarkEntry* benckmarkEntry)
 		sortingAlgoLeft = true;
 	}*/
 
-	/*
 	if (lastIntroTime <= secondsThreshhold)
 	{
 		lastIntroTime = BenchmarkAlgorithm(IntroSort, L"IntroSort", benckmarkEntry);
@@ -370,7 +368,7 @@ bool Benchmark(const BenchmarkEntry* benckmarkEntry)
 		lastQSTime = BenchmarkAlgorithm(QuickSort, L"QuickSort", benckmarkEntry);
 		sortingAlgoLeft = true;
 	}
-	*/
+
 
 	if (lastRadixTime <= secondsThreshhold)
 	{
@@ -403,7 +401,7 @@ int main()
 	{
 		benchmarkSizes.emplace_back(value);
 		value += 1;
-		value *= 1.01;
+		value *= 1.05;
 	}
 
 	for (auto size : benchmarkSizes)

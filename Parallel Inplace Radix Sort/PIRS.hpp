@@ -115,7 +115,6 @@ namespace PIRS
 				{
 					if (i < NEW_THREAD_THRESHOLD || elementCount - i < NEW_THREAD_THRESHOLD)
 					{
-						/*
 						const static auto SortBothInOneThread = [](PIRSorter* _this, ToSortType* data, size_t elementCount, size_t step, size_t i)
 						{
 							if (i > 1)
@@ -134,9 +133,6 @@ namespace PIRS
 						    _Futures.emplace_back(std::async(SortBothInOneThread, this, data, elementCount, step + 1, i));
 							_FuturesManipMutex.unlock();
 						}
-						*/
-						_InternalSort(data, i, step + 1);
-						_InternalSort(data + i, elementCount - i, step + 1);
 					}
 					else
 					{
