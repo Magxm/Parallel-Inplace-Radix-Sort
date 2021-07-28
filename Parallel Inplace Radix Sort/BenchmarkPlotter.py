@@ -42,8 +42,8 @@ def PlotBenchmarkResult(results):
                 thisY = float(row[1])
                 x_axis.append(thisX)
                 y_axis.append(thisY)
-            ysmoothed = gaussian_filter1d(y_axis, sigma=2)
-            plt.plot(x_axis, ysmoothed, label=os.path.splitext(csvFile)[0]) #, color=GenerateColorFromString(csvFile))
+            ysmoothed = gaussian_filter1d(y_axis, sigma=4)
+            plt.plot(x_axis, ysmoothed, label=Path(csvFile).stem) #, color=GenerateColorFromString(csvFile))
             maxX = max(maxX, max(x_axis))
             maxY = max(maxY, 50)
         except IOError as e:

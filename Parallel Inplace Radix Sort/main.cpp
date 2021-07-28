@@ -7,12 +7,16 @@
 #include <fstream>
 #include <iomanip>
 #include <chrono>
+#include <iostream>
+#include <algorithm>
+#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <queue>
 
-typedef int8_t SortType;
+typedef uint8_t SortType;
 
-const size_t minPartitionSize = 1000000;
-
-PIRS::PIRSorter<SortType, PIRS::ByteAdapter, 8> PIRSorter;
+PIRS::PIRSorter<SortType, PIRS::ByteAdapter, 8, (size_t)1 << (size_t)63> PIRSorter;
 void PIRSSort(SortType* data, size_t dataSize)
 {
 	PIRSorter.Sort(data, dataSize);
@@ -24,6 +28,8 @@ void swap(SortType* xp, SortType* yp)
 	*xp = *yp;
 	*yp = temp;
 }
+
+const size_t minPartitionSize = 1000000;
 
 template <class ForwardIterator,
 	typename Compare = std::less<
@@ -87,6 +93,36 @@ void SelectionSort(SortType* data, size_t dataSize)
 		}
 }
 
+
+SortType findMax(SortType* arr, size_t size)
+{
+	SortType max = arr[0];
+	for (size_t i = 1; i < size; i++)
+		max = (arr[i] > max) ? arr[i] : max;
+	return max;
+}
+
+void radixSort(SortType* arr, size_t size)
+{
+	SortType max = findMax(arr, size);
+	std::queue<SortType> bucket[10];
+	for (size_t n = 1; n <= max; n *= 10)
+	{
+		for (size_t i = 0; i < size; i++)
+			bucket[(arr[i] / n) % 10].push(arr[i]);
+		size_t k = 0;
+		for (size_t j = 0; j < 10; j++)
+		{
+			while (!bucket[j].empty())
+			{
+				arr[k++] = bucket[j].front();
+				bucket[j].pop();
+			}
+		}
+	}
+}
+
+
 void BubbleSort(SortType* data, size_t dataSize)
 {
 	int i, j;
@@ -109,7 +145,7 @@ void BubbleSort(SortType* data, size_t dataSize)
 
 void InsertionSort(SortType* data, size_t dataSize)
 {
-	// Fuction to do insertion sort.
+	// Function to do insertion sort.
 	int i, j;
 	SortType key;
 	for (i = 1; i < dataSize; i++)
@@ -209,57 +245,9 @@ void IntroSort(SortType* data, size_t dataSize)
 	std::sort(data, data + dataSize);
 }
 
-// A utility function to get maximum value in arr[]
-size_t getMax(SortType arr[], size_t n)
-{
-	SortType mx = arr[0];
-	for (size_t i = 1; i < n; i++)
-		if (arr[i] > mx)
-			mx = arr[i];
-	return mx;
-}
-
-// A function to do counting sort of arr[] according to
-// the digit represented by exp.
-void countSort(SortType arr[], int n, int exp)
-{
-	SortType* output = new SortType[n]; // output array
-	size_t i, count[10] = { 0 };
-
-	// Store count of occurrences in count[]
-	for (i = 0; i < n; i++)
-		count[(arr[i] / exp) % 10]++;
-
-	// Change count[i] so that count[i] now contains actual
-	//  position of this digit in output[]
-	for (i = 1; i < 10; i++)
-		count[i] += count[i - 1];
-
-	// Build the output array
-	for (i = n - 1; i >= 0; i--)
-	{
-		output[count[(arr[i] / exp) % 10] - 1] = arr[i];
-		count[(arr[i] / exp) % 10]--;
-	}
-
-	// Copy the output array to arr[], so that arr[] now
-	// contains sorted numbers according to current digit
-	for (i = 0; i < n; i++)
-		arr[i] = output[i];
-
-	delete[] output;
-}
-
 void RadixSort(SortType* data, size_t dataSize)
 {
-	// Find the maximum number to know number of digits
-	size_t m = getMax(data, dataSize);
-
-	// Do counting sort for every digit. Note that instead
-	// of passing digit number, exp is passed. exp is 10^i
-	// where i is current digit number
-	for (size_t exp = 1; m / exp > 0; exp *= 10)
-		countSort(data, dataSize, exp);
+	radixSort(data, dataSize);
 }
 
 struct BenchmarkEntry
@@ -332,59 +320,78 @@ bool Benchmark(const BenchmarkEntry* benckmarkEntry)
 	bool sortingAlgoLeft = false;
 
 	/*
-if (lastMergeTime <= secondsThreshhold)
-{
-	lastMergeTime = BenchmarkAlgorithm(MergeSort, L"MergeSort", benckmarkEntry);
-	sortingAlgoLeft = true;
-}
+	if (lastMergeTime <= secondsThreshhold)
+	{
+		lastMergeTime = BenchmarkAlgorithm(MergeSort, L"MergeSort", benckmarkEntry);
+		sortingAlgoLeft = true;
+	}
+	*/
 
-if (lastPIRSTime <= secondsThreshhold)
-{
-	lastPIRSTime = BenchmarkAlgorithm(PIRSSort, L"PIRSort", benckmarkEntry);
-	sortingAlgoLeft = true;
-}
+	if (lastPIRSTime <= secondsThreshhold)
+	{
+		lastPIRSTime = BenchmarkAlgorithm(PIRSSort, L"Inplace Radix Sort", benckmarkEntry);
+		sortingAlgoLeft = true;
+	}
 
-if (lastQSMTTime <= secondsThreshhold)
-{
-	lastQSMTTime = BenchmarkAlgorithm(QuicksortMT, L"ParallelQuicksort", benckmarkEntry);
-	sortingAlgoLeft = true;
-}
+	/*
+	if (lastQSMTTime <= secondsThreshhold)
+	{
+		lastQSMTTime = BenchmarkAlgorithm(QuicksortMT, L"ParallelQuicksort", benckmarkEntry);
+		sortingAlgoLeft = true;
+	}
+	*/
+	/*
+	if (lastSelectionTime <= secondsThreshhold)
+	{
+		lastSelectionTime = BenchmarkAlgorithm(SelectionSort, L"SelectionSort", benckmarkEntry);
+		sortingAlgoLeft = true;
+	}
+	if (lastBubbleTime <= secondsThreshhold)
+	{
+		lastBubbleTime = BenchmarkAlgorithm(BubbleSort, L"BubbleSort", benckmarkEntry);
+		sortingAlgoLeft = true;
+	}
 
-if (lastSelectionTime <= secondsThreshhold)
-{
-	lastSelectionTime = BenchmarkAlgorithm(SelectionSort, L"SelectionSort", benckmarkEntry);
-	sortingAlgoLeft = true;
-}
-if (lastBubbleTime <= secondsThreshhold)
-{
-	lastBubbleTime = BenchmarkAlgorithm(BubbleSort, L"BubbleSort", benckmarkEntry);
-	sortingAlgoLeft = true;
-}
-if (lastInsertionTime <= secondsThreshhold)
-{
-	lastInsertionTime = BenchmarkAlgorithm(InsertionSort, L"InsertionSort", benckmarkEntry);
-	sortingAlgoLeft = true;
-}
+	if (lastInsertionTime <= secondsThreshhold)
+	{
+		lastInsertionTime = BenchmarkAlgorithm(InsertionSort, L"InsertionSort", benckmarkEntry);
+		sortingAlgoLeft = true;
+	}*/
 
+	/*
 	if (lastIntroTime <= secondsThreshhold)
 	{
 		lastIntroTime = BenchmarkAlgorithm(IntroSort, L"IntroSort", benckmarkEntry);
 		sortingAlgoLeft = true;
 	}
 
-	*/
-
 	if (lastQSTime <= secondsThreshhold)
 	{
 		lastQSTime = BenchmarkAlgorithm(QuickSort, L"QuickSort", benckmarkEntry);
 		sortingAlgoLeft = true;
 	}
+	*/
+
 	if (lastRadixTime <= secondsThreshhold)
 	{
 		lastRadixTime = BenchmarkAlgorithm(RadixSort, L"RadixSort", benckmarkEntry);
 		sortingAlgoLeft = true;
 	}
 
+	/*
+	sortingAlgoLeft = true;
+	BenchmarkAlgorithm(QuicksortMT, L"ParallelQuicksort", benckmarkEntry);
+	BenchmarkAlgorithm(QuickSort, L"QuickSort", benckmarkEntry);
+	BenchmarkAlgorithm(PIRSSort_64, L"PIRSSort_64", benckmarkEntry);
+	BenchmarkAlgorithm(PIRSSort_128, L"PIRSSort_128", benckmarkEntry);
+	BenchmarkAlgorithm(PIRSSort_1024, L"PIRSSort_1024", benckmarkEntry);
+	BenchmarkAlgorithm(PIRSSort_8192, L"PIRSSort_8192", benckmarkEntry);
+	BenchmarkAlgorithm(PIRSSort_32k, L"PIRSSort_32k", benckmarkEntry);
+	BenchmarkAlgorithm(PIRSSort_65k, L"PIRSSort_64k", benckmarkEntry);
+	BenchmarkAlgorithm(PIRSSort_130k, L"PIRSSort_130k", benckmarkEntry);
+	BenchmarkAlgorithm(PIRSSort_500k, L"PIRSSort_500k", benckmarkEntry);
+	BenchmarkAlgorithm(PIRSSort_1kk, L"PIRSSort_1kk", benckmarkEntry);#
+	*/
 	return sortingAlgoLeft;
 }
 
@@ -396,7 +403,7 @@ int main()
 	{
 		benchmarkSizes.emplace_back(value);
 		value += 1;
-		value *= 3;
+		value *= 1.01;
 	}
 
 	for (auto size : benchmarkSizes)
